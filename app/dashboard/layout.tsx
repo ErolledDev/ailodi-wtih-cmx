@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { LogOut, LayoutDashboard } from 'lucide-react';
-import { isAuthenticatedClient, clearSessionClient } from '@/lib/auth';
+import { verifySessionOnServer, logoutOnServer } from '@/lib/auth';
 
 export default function DashboardLayout({
   children,
@@ -20,19 +20,20 @@ export default function DashboardLayout({
 
   useEffect(() => {
     // Check authentication on mount
-    const authenticated = isAuthenticatedClient();
-    setIsAuthenticated(authenticated);
-    setIsLoading(false);
+    verifySessionOnServer().then((authenticated) => {
+      setIsAuthenticated(authenticated);
+      setIsLoading(false);
 
-    if (!authenticated) {
-      router.push('/auth');
-    }
+      if (!authenticated) {
+        router.push('/auth');
+      }
+    });
   }, [router]);
 
   async function handleLogout() {
     setIsLoggingOut(true);
     try {
-      clearSessionClient();
+      await logoutOnServer();
       router.push('/auth');
       router.refresh();
     } catch (error) {

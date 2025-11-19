@@ -10,5 +10,14 @@ not_found_handling = "single-page-application"
 [env.production]
 name = "ai-lodi-blog"
 
+[env.production.vars]
+ADMIN_PASSWORD = "admin123"
+
 [env.preview]
 name = "ai-lodi-blog-preview"
+
+[env.preview.vars]
+ADMIN_PASSWORD = "admin123"
+
+[env.development]
+vars = { ADMIN_PASSWORD = "admin123" }

@@ -7,8 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, Loader2 } from 'lucide-react';
-
-import { validatePasswordClient, createSessionClient } from '@/lib/auth';
+import { validatePasswordOnServer } from '@/lib/auth';
 
 export default function AuthPage() {
   const router = useRouter();
@@ -22,14 +21,14 @@ export default function AuthPage() {
     setIsLoading(true);
 
     try {
-      // Validate password client-side
-      if (!validatePasswordClient(password)) {
-        setError('Invalid password');
+      // Validate password on server (Cloudflare Pages Function)
+      const result = await validatePasswordOnServer(password);
+
+      if (!result.success) {
+        setError(result.error || 'Login failed');
+        setIsLoading(false);
         return;
       }
-
-      // Create session
-      createSessionClient();
 
       // Redirect to dashboard on successful login
       router.push('/dashboard');
@@ -37,7 +36,6 @@ export default function AuthPage() {
     } catch (err) {
       console.error('Login error:', err);
       setError('An unexpected error occurred');
-    } finally {
       setIsLoading(false);
     }
   }
