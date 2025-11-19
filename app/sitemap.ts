@@ -74,7 +74,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.log('🗺️ BUILD: Generating sitemap with fresh content...');
     
     // Force fresh content fetch for sitemap generation
-    const posts = await getAllContent({ cache: 'no-store' });
+    const posts = await getAllContent();
     console.log(`🗺️ BUILD: Generating sitemap for ${posts.length} posts`);
     
     // Blog post URLs

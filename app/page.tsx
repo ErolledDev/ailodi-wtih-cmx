@@ -5,9 +5,9 @@ import { getAllContent } from '@/lib/content';
 import type { BlogPost } from '@/types/blog';
 
 export default async function Home() {
-  // Force fresh content fetch at build time with explicit cache control
+  // Fetch content for homepage
   console.log('🏠 BUILD: Fetching content for homepage...');
-  const allPosts = await getAllContent({ cache: 'no-store' });
+  const allPosts = await getAllContent();
   
   // Prepare data for components
   const latestPosts = allPosts.slice(0, 3);

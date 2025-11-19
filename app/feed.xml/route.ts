@@ -7,7 +7,7 @@ export async function GET() {
     console.log('📡 BUILD: Generating RSS feed with fresh content...');
     
     // Force fresh content fetch for RSS feed generation
-    const posts = await getAllContent({ cache: 'no-store' });
+    const posts = await getAllContent();
     const latestPosts = posts
       .sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime())
       .slice(0, 20); // Latest 20 posts
