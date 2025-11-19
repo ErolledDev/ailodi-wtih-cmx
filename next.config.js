@@ -10,7 +10,7 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
   
-  // Enable static export for Cloudflare Workers compatibility
+  // Enable static export for Cloudflare Pages compatibility
   output: 'export',
   trailingSlash: true,
   
@@ -25,9 +25,9 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === 'production',
   },
   
-  // Image optimization configuration for Cloudflare
+  // Image optimization configuration
   images: {
-    unoptimized: true, // Required for static export
+    unoptimized: true, // Allow external images
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],

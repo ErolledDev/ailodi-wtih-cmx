@@ -1,41 +1,57 @@
-'use server';
+// Client-side authentication for static export
+// This uses localStorage since we can't use cookies/server sessions with output: 'export'
 
-import { cookies } from 'next/headers';
-
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
-const SESSION_COOKIE = 'admin-session';
+const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'admin123';
+const SESSION_STORAGE_KEY = 'admin-session-token';
 const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
-export async function validatePassword(password: string): Promise<boolean> {
+// Client-side functions (use in client components)
+export function validatePasswordClient(password: string): boolean {
   return password === ADMIN_PASSWORD;
 }
 
-export async function createSession(): Promise<string> {
-  const sessionToken = Buffer.from(`${Date.now()}-${Math.random()}`).toString('hex');
-  const cookieStore = await cookies();
+export function createSessionClient(): string {
+  const timestamp = Date.now();
+  const sessionToken = `${timestamp}-${Math.random().toString(36).substr(2, 9)}`;
   
-  cookieStore.set(SESSION_COOKIE, sessionToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: SESSION_DURATION / 1000,
-    path: '/',
-  });
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(SESSION_STORAGE_KEY, sessionToken);
+    localStorage.setItem(`${SESSION_STORAGE_KEY}-expires`, String(timestamp + SESSION_DURATION));
+  }
 
   return sessionToken;
 }
 
-export async function getSession(): Promise<string | null> {
-  const cookieStore = await cookies();
-  return cookieStore.get(SESSION_COOKIE)?.value || null;
+export function getSessionClient(): string | null {
+  if (typeof window === 'undefined') return null;
+  
+  const token = localStorage.getItem(SESSION_STORAGE_KEY);
+  const expiresStr = localStorage.getItem(`${SESSION_STORAGE_KEY}-expires`);
+  
+  if (!token || !expiresStr) return null;
+  
+  const expires = parseInt(expiresStr, 10);
+  if (Date.now() > expires) {
+    clearSessionClient();
+    return null;
+  }
+  
+  return token;
 }
 
-export async function clearSession(): Promise<void> {
-  const cookieStore = await cookies();
-  cookieStore.delete(SESSION_COOKIE);
+export function clearSessionClient(): void {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(SESSION_STORAGE_KEY);
+    localStorage.removeItem(`${SESSION_STORAGE_KEY}-expires`);
+  }
 }
 
-export async function isAuthenticated(): Promise<boolean> {
-  const session = await getSession();
-  return session !== null;
+export function isAuthenticatedClient(): boolean {
+  return getSessionClient() !== null;
 }
+
+// Server-side functions (for API routes if needed)
+export async function validatePassword(password: string): Promise<boolean> {
+  return password === ADMIN_PASSWORD;
+}
+

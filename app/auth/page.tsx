@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, Loader2 } from 'lucide-react';
 
+import { validatePasswordClient, createSessionClient } from '@/lib/auth';
+
 export default function AuthPage() {
   const router = useRouter();
   const [password, setPassword] = useState('');
@@ -20,18 +22,14 @@ export default function AuthPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || 'Login failed');
+      // Validate password client-side
+      if (!validatePasswordClient(password)) {
+        setError('Invalid password');
         return;
       }
+
+      // Create session
+      createSessionClient();
 
       // Redirect to dashboard on successful login
       router.push('/dashboard');
