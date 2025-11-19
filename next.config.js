@@ -12,6 +12,7 @@ const nextConfig = {
   
   // Enable static export for Cloudflare Pages compatibility
   output: 'export',
+  distDir: 'out',
   trailingSlash: true,
   
   // Disable caching during build for fresh content
