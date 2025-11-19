@@ -39,6 +39,11 @@ export async function generateStaticParams() {
     console.log('🏗️ BUILD: Generating static params for category pages...');
     
     const posts = await getAllContent();
+    if (!posts || posts.length === 0) {
+      console.log('🏗️ BUILD: No posts found, returning empty category params');
+      return [];
+    }
+
     const allCategories = Array.from(new Set(posts.flatMap(post => post.categories || [])));
     
     const params = allCategories.map(category => ({
