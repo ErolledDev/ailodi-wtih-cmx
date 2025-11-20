@@ -1,6 +1,7 @@
 {
   "version": 1,
-  "include": ["/api/auth/login", "/api/auth/logout", "/api/auth/verify"],
+  "include": ["/api/*"],
+  "exclude": [],
   "routes": [
     {
       "pattern": "^/api/auth/login$",
