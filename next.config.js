@@ -10,8 +10,8 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
   
-  // Enable static export for Cloudflare Pages compatibility
-  output: 'export',
+  // Use dynamic rendering for Cloudflare Pages with Server Actions support
+  // Static export is incompatible with Server Actions needed for CMS
   distDir: 'out',
   trailingSlash: true,
   
