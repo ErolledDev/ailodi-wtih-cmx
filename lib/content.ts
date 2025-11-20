@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+import matter from 'gray-matter';
 import type { BlogPost } from '@/types/blog';
 
 interface SearchResult {
@@ -6,68 +9,124 @@ interface SearchResult {
   errorMessage?: string;
 }
 
-// Static blog posts data - this ensures availability at build time
-const staticPosts: BlogPost[] = [
-  {
-    id: "getting-started-with-ai-lodi",
-    title: "Getting Started with AI LODI",
-    slug: "getting-started-with-ai-lodi",
-    author: "Admin",
-    featuredImageUrl: "https://images.unsplash.com/photo-1677442d019cecf8d10c0e68b60a6378?w=800&h=400&fit=crop",
-    seoTitle: "Getting Started with AI LODI - Your Guide",
-    metaDescription: "Learn how to get started with AI LODI and begin your journey into artificial intelligence",
-    keywords: ["ai", "lodi", "getting started", "beginner"],
-    categories: ["Tutorials"],
-    tags: ["AI", "Getting Started", "Beginner"],
-    status: "published",
-    publishDate: "2024-01-15T10:00:00Z",
-    createdAt: "2024-01-15T10:00:00Z",
-    updatedAt: "2024-01-15T10:00:00Z",
-    content: "# Getting Started with AI LODI\n\nWelcome to the AI LODI platform! This comprehensive guide will walk you through the essentials.\n\n## What is AI LODI?\n\nAI LODI is a powerful framework designed to help you build intelligent applications with ease.\n\n### Key Features\n\n- **Easy Setup**: Get started in minutes\n- **Flexible**: Works with any tech stack\n- **Scalable**: Handle millions of requests\n\n## Installation\n\n```bash\nnpm install ailodi\n```\n\n## Your First Project\n\nCreate a new project and start building amazing applications."
-  },
-  {
-    id: "understanding-authentication",
-    title: "Understanding Authentication",
-    slug: "understanding-authentication",
-    author: "Admin",
-    featuredImageUrl: "https://images.unsplash.com/photo-1633356122544-f134ef2e00ae?w=800&h=400&fit=crop",
-    seoTitle: "Understanding Authentication - Security Best Practices",
-    metaDescription: "Deep dive into authentication mechanisms and learn security best practices",
-    keywords: ["authentication", "security", "password", "tokens"],
-    categories: ["Security"],
-    tags: ["Security", "Authentication", "Best Practices"],
-    status: "published",
-    publishDate: "2024-01-20T14:30:00Z",
-    createdAt: "2024-01-20T14:30:00Z",
-    updatedAt: "2024-01-20T14:30:00Z",
-    content: "# Understanding Authentication\n\nAuthentication is a critical component of any secure application. Let's explore the fundamentals.\n\n## Basic Concepts\n\n### What is Authentication?\n\nAuthentication is the process of verifying the identity of a user or system.\n\n## Authentication Methods\n\n### 1. Password-Based\n\nThe most common form where users provide a secret password.\n\n### 2. Token-Based\n\nUsers receive a token after authentication, which they use for subsequent requests.\n\n### 3. OAuth\n\nDelegated authentication using third-party providers.\n\n## Security Best Practices\n\n- Always use HTTPS\n- Hash passwords securely\n- Implement rate limiting\n- Use secure session cookies"
-  },
-  {
-    id: "cloudflare-scalable-apps",
-    title: "Building Scalable Apps with Cloudflare",
-    slug: "cloudflare-scalable-apps",
-    author: "Admin",
-    featuredImageUrl: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&h=400&fit=crop",
-    seoTitle: "Building Scalable Applications with Cloudflare",
-    metaDescription: "Learn how to leverage Cloudflare to build scalable, high-performance applications",
-    keywords: ["cloudflare", "scalability", "performance", "edge computing"],
-    categories: ["DevOps"],
-    tags: ["Cloudflare", "Scalability", "Performance"],
-    status: "published",
-    publishDate: "2024-01-25T09:15:00Z",
-    createdAt: "2024-01-25T09:15:00Z",
-    updatedAt: "2024-01-25T09:15:00Z",
-    content: "# Building Scalable Apps with Cloudflare\n\nCloudflare provides a powerful platform for building globally distributed applications.\n\n## Why Cloudflare?\n\n### Global Infrastructure\n\nCloudflare's network spans across the globe, ensuring low latency for users everywhere.\n\n### Performance Benefits\n\n- Automatic caching\n- Image optimization\n- Code compression\n- DDoS protection\n\n## Cloudflare Pages\n\n### Key Features\n\n1. **Serverless Functions**: Run backend code without servers\n2. **Full Stack**: Deploy frontend and backend together\n3. **Git Integration**: Automatic deployments on push\n\n## Getting Started\n\nConnect your GitHub repository and push your code. Cloudflare will automatically build and deploy your application across their global network."
+/**
+ * Load all markdown posts from content/posts directory
+ */
+export async function loadPostsFromMarkdown(): Promise<BlogPost[]> {
+  try {
+    const postsDir = path.join(process.cwd(), 'content', 'posts');
+    
+    // Handle case where directory doesn't exist at build time
+    if (!fs.existsSync(postsDir)) {
+      console.warn(`Posts directory not found at ${postsDir}, using fallback`);
+      return getStaticFallbackPosts();
+    }
+
+    const files = fs.readdirSync(postsDir).filter(file => file.endsWith('.md'));
+    
+    const posts = files.map(file => {
+      const filePath = path.join(postsDir, file);
+      const fileContent = fs.readFileSync(filePath, 'utf-8');
+      const { data, content } = matter(fileContent);
+
+      // Convert frontmatter to BlogPost
+      const post: BlogPost = {
+        id: data.slug || file.replace('.md', ''),
+        title: data.title || 'Untitled',
+        slug: data.slug || file.replace('.md', ''),
+        author: data.author || 'Admin',
+        featuredImageUrl: data.featuredImageUrl || 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=400&fit=crop',
+        seoTitle: data.title || 'Untitled',
+        metaDescription: data.metaDescription || 'Read this blog post',
+        keywords: data.keywords || [data.category?.toLowerCase() || 'blog'],
+        categories: data.category ? [data.category] : ['Blog'],
+        tags: data.tags || [],
+        status: 'published',
+        publishDate: new Date(data.createdAt).toISOString(),
+        createdAt: new Date(data.createdAt).toISOString(),
+        updatedAt: new Date(data.updatedAt || data.createdAt).toISOString(),
+        content: content,
+      };
+
+      return post;
+    });
+
+    return posts.sort((a, b) => 
+      new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()
+    );
+  } catch (error) {
+    console.error('Error loading posts from markdown:', error);
+    return getStaticFallbackPosts();
   }
-];
+}
+
+/**
+ * Fallback static posts for build-time guarantee
+ */
+function getStaticFallbackPosts(): BlogPost[] {
+  return [
+    {
+      id: "getting-started-with-ai-lodi",
+      title: "Getting Started with AI LODI",
+      slug: "getting-started-with-ai-lodi",
+      author: "Admin",
+      featuredImageUrl: "https://images.unsplash.com/photo-1677442d019cecf8d10c0e68b60a6378?w=800&h=400&fit=crop",
+      seoTitle: "Getting Started with AI LODI - Your Guide",
+      metaDescription: "Learn how to get started with AI LODI and begin your journey into artificial intelligence",
+      keywords: ["ai", "lodi", "getting started"],
+      categories: ["Tutorials"],
+      tags: ["AI", "Getting Started"],
+      status: "published",
+      publishDate: "2024-01-15T10:00:00Z",
+      createdAt: "2024-01-15T10:00:00Z",
+      updatedAt: "2024-01-15T10:00:00Z",
+      content: "# Getting Started with AI LODI\n\nWelcome to AI LODI!"
+    },
+    {
+      id: "understanding-authentication",
+      title: "Understanding Authentication",
+      slug: "understanding-authentication",
+      author: "Admin",
+      featuredImageUrl: "https://images.unsplash.com/photo-1633356122544-f134ef2e00ae?w=800&h=400&fit=crop",
+      seoTitle: "Understanding Authentication",
+      metaDescription: "Deep dive into authentication mechanisms and best practices",
+      keywords: ["authentication", "security"],
+      categories: ["Security"],
+      tags: ["Security"],
+      status: "published",
+      publishDate: "2024-01-20T14:30:00Z",
+      createdAt: "2024-01-20T14:30:00Z",
+      updatedAt: "2024-01-20T14:30:00Z",
+      content: "# Understanding Authentication\n\nAuthentication is critical for security."
+    },
+    {
+      id: "cloudflare-scalable-apps",
+      title: "Building Scalable Apps with Cloudflare",
+      slug: "cloudflare-scalable-apps",
+      author: "Admin",
+      featuredImageUrl: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&h=400&fit=crop",
+      seoTitle: "Building Scalable Applications with Cloudflare",
+      metaDescription: "Learn to build scalable apps with Cloudflare",
+      keywords: ["cloudflare", "scalability"],
+      categories: ["DevOps"],
+      tags: ["Cloudflare"],
+      status: "published",
+      publishDate: "2024-01-25T09:15:00Z",
+      createdAt: "2024-01-25T09:15:00Z",
+      updatedAt: "2024-01-25T09:15:00Z",
+      content: "# Building Scalable Apps with Cloudflare\n\nCloudflare is powerful!"
+    }
+  ];
+}
 
 export async function getAllContent(): Promise<BlogPost[]> {
   try {
-    // Use static posts for build-time generation
-    // Filter for published posts only
-    return staticPosts
-      .filter((post) => post.status === 'published')
-      .sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime());
+    // Load posts from markdown files
+    const posts = await loadPostsFromMarkdown();
+    return posts.filter((post: BlogPost) => post.status === 'published')
+      .sort((a: BlogPost, b: BlogPost) => 
+        new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()
+      );
   } catch (error) {
     console.error('Error loading posts:', error);
     return [];

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Save, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Save, AlertCircle, Github } from 'lucide-react';
 
 interface FormData {
   title: string;
@@ -16,30 +16,23 @@ interface FormData {
   content: string;
   author: string;
   metaDescription: string;
-  seoTitle: string;
-  keywords: string;
-  categories: string;
-  tags: string;
+  category: string;
   featuredImageUrl: string;
-  status: 'published' | 'draft';
 }
 
 export default function CreatePostPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [formData, setFormData] = useState<FormData>({
     title: '',
     slug: '',
     content: '',
-    author: 'Anonymous',
+    author: 'Admin',
     metaDescription: '',
-    seoTitle: '',
-    keywords: '',
-    categories: '',
-    tags: '',
-    featuredImageUrl: '',
-    status: 'draft',
+    category: 'Blog',
+    featuredImageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=600&fit=crop',
   });
 
   function generateSlug(title: string) {
@@ -69,6 +62,7 @@ export default function CreatePostPage() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setIsLoading(true);
 
     try {
@@ -79,19 +73,49 @@ export default function CreatePostPage() {
         return;
       }
 
-      // Call API to create post (to be implemented)
-      // const response = await fetch('/api/content', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData),
-      // });
+      // Step 1: Create post via Cloudflare Function
+      const createResponse = await fetch('/api/posts/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(formData),
+      });
 
-      // For now, just show success
-      router.push('/dashboard/content');
-      router.refresh();
+      if (!createResponse.ok) {
+        const data = await createResponse.json();
+        throw new Error(data.error || 'Failed to create post');
+      }
+
+      const result = await createResponse.json();
+      
+      // Step 2: Save markdown content locally (in real app, Cloudflare would do this)
+      // For now, show instructions for user to commit
+      setSuccess(`✅ Post created successfully! 
+        
+Filename: ${result.post.fileName}
+
+Next steps:
+1. The markdown file will be committed to content/posts/
+2. Push to GitHub to trigger rebuild
+3. Your post will appear on the site`);
+
+      // Step 3: Reset form
+      setTimeout(() => {
+        setFormData({
+          title: '',
+          slug: '',
+          content: '',
+          author: 'Admin',
+          metaDescription: '',
+          category: 'Blog',
+          featuredImageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=600&fit=crop',
+        });
+        router.push('/dashboard/content');
+      }, 2000);
+
     } catch (err) {
       console.error('Submit error:', err);
-      setError('Failed to create post');
+      setError(err instanceof Error ? err.message : 'Failed to create post');
     } finally {
       setIsLoading(false);
     }
