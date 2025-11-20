@@ -1,6 +1,6 @@
 /**
  * Cloudflare Pages Function for session verification
- * Route: GET /api/auth/verify
+ * Route: /api/auth/verify (via nested directory structure)
  */
 
 export async function onRequest(context) {

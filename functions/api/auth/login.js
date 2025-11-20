@@ -1,12 +1,12 @@
 /**
  * Cloudflare Pages Function for admin login
- * Route: POST /api/auth/login
+ * Route: /api/auth/login (via nested directory structure)
  */
 
 export async function onRequest(context) {
   const { request, env } = context;
 
-  // Only allow POST requests
+  // Handle all methods at routing level, but only accept POST
   if (request.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,

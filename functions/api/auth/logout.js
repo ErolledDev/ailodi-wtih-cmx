@@ -1,6 +1,6 @@
 /**
  * Cloudflare Pages Function for admin logout
- * Route: POST /api/auth/logout
+ * Route: /api/auth/logout (via nested directory structure)
  */
 
 export async function onRequest(context) {
