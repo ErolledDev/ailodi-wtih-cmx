@@ -1,5 +1,3 @@
-import fs from 'fs';
-import path from 'path';
 import matter from 'gray-matter';
 import type { BlogPost } from '@/types/blog';
 
@@ -11,20 +9,25 @@ interface SearchResult {
 
 /**
  * Load all markdown posts from content/posts directory
+ * Uses dynamic import to avoid fs at build time
  */
 export async function loadPostsFromMarkdown(): Promise<BlogPost[]> {
   try {
+    // Dynamic imports - only loaded at runtime
+    const fs = (await import('fs')).default;
+    const path = (await import('path')).default;
+    
     const postsDir = path.join(process.cwd(), 'content', 'posts');
     
-    // Handle case where directory doesn't exist at build time
+    // Handle case where directory doesn't exist
     if (!fs.existsSync(postsDir)) {
       console.warn(`Posts directory not found at ${postsDir}, using fallback`);
       return getStaticFallbackPosts();
     }
 
-    const files = fs.readdirSync(postsDir).filter(file => file.endsWith('.md'));
+    const files = fs.readdirSync(postsDir).filter((file: string) => file.endsWith('.md'));
     
-    const posts = files.map(file => {
+    const posts = files.map((file: string) => {
       const filePath = path.join(postsDir, file);
       const fileContent = fs.readFileSync(filePath, 'utf-8');
       const { data, content } = matter(fileContent);
