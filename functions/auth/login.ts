@@ -3,7 +3,7 @@
  * Deploy: This file is automatically deployed to /api/auth/login
  */
 
-export const onRequest = async (context: any) => {
+export default async (context: any) => {
   const { request, env } = context;
 
   // Only allow POST requests

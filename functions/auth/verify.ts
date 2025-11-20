@@ -3,7 +3,7 @@
  * Deploy: This file is automatically deployed to /api/auth/verify
  */
 
-export const onRequest = async (context: any) => {
+export default async (context: any) => {
   const { request } = context;
 
   try {
