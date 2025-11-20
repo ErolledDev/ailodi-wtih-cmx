@@ -1,3 +1,5 @@
+'use server';
+
 import matter from 'gray-matter';
 import type { BlogPost } from '@/types/blog';
 
