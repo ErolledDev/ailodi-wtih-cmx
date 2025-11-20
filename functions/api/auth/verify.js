@@ -3,14 +3,14 @@
  * Deploy: This file is automatically deployed to /api/auth/verify
  */
 
-export default async (context: any) => {
+export default async (context) => {
   const { request } = context;
 
   try {
     // Get cookies from request
     const cookieHeader = request.headers.get('cookie') || '';
     const cookies = Object.fromEntries(
-      cookieHeader.split('; ').map((c: string) => {
+      cookieHeader.split('; ').map((c) => {
         const [key, value] = c.split('=');
         return [key, value];
       })

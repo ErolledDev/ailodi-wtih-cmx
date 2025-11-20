@@ -3,7 +3,7 @@
  * Deploy: This file is automatically deployed to /api/auth/logout
  */
 
-export default async (context: any) => {
+export default async (context) => {
   const { request } = context;
 
   // Only allow POST requests

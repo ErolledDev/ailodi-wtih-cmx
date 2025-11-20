@@ -3,7 +3,7 @@
  * Deploy: This file is automatically deployed to /api/auth/login
  */
 
-export default async (context: any) => {
+export default async (context) => {
   const { request, env } = context;
 
   // Only allow POST requests
@@ -15,7 +15,7 @@ export default async (context: any) => {
   }
 
   try {
-    const body = await request.json() as { password?: string };
+    const body = await request.json();
     const { password } = body;
 
     if (!password) {
@@ -62,4 +62,3 @@ export default async (context: any) => {
     });
   }
 };
-
