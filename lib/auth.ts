@@ -11,15 +11,21 @@ export async function validatePasswordOnServer(password: string): Promise<{
   error?: string;
 }> {
   try {
-    const response = await fetch('/api/auth/login', {
+    // Use absolute URL for Cloudflare Pages Functions
+    const baseUrl = typeof window !== 'undefined' 
+      ? window.location.origin 
+      : process.env.NEXT_PUBLIC_SITE_URL || 'https://ailodi-wtih-cmx.pages.dev';
+    
+    const response = await fetch(`${baseUrl}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password }),
+      credentials: 'include', // Include cookies for session
     });
 
     if (!response.ok) {
-      const data = await response.json();
-      return { success: false, error: data.error };
+      const data = await response.json().catch(() => ({ error: 'Invalid response' }));
+      return { success: false, error: data.error || 'Login failed' };
     }
 
     return { success: true };
@@ -34,7 +40,12 @@ export async function validatePasswordOnServer(password: string): Promise<{
  */
 export async function verifySessionOnServer(): Promise<boolean> {
   try {
-    const response = await fetch('/api/auth/verify', {
+    // Use absolute URL for Cloudflare Pages Functions
+    const baseUrl = typeof window !== 'undefined' 
+      ? window.location.origin 
+      : process.env.NEXT_PUBLIC_SITE_URL || 'https://ailodi-wtih-cmx.pages.dev';
+    
+    const response = await fetch(`${baseUrl}/api/auth/verify`, {
       method: 'GET',
       credentials: 'include', // Include cookies
     });
@@ -54,7 +65,12 @@ export async function verifySessionOnServer(): Promise<boolean> {
  */
 export async function logoutOnServer(): Promise<void> {
   try {
-    await fetch('/api/auth/logout', {
+    // Use absolute URL for Cloudflare Pages Functions
+    const baseUrl = typeof window !== 'undefined' 
+      ? window.location.origin 
+      : process.env.NEXT_PUBLIC_SITE_URL || 'https://ailodi-wtih-cmx.pages.dev';
+    
+    await fetch(`${baseUrl}/api/auth/logout`, {
       method: 'POST',
       credentials: 'include', // Include cookies
     });
